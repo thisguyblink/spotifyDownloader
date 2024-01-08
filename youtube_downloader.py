@@ -48,13 +48,18 @@ def getSpotifyToken():
         "Content-Type" : "application/x-www-form-urlencoded"
     }
     data = {"grant_type" : "client_credentials"}
-    result = post(url, headers=headers, data = data)
+    result = post(url, headers=headers, data=data)
     json_result = json.loads(result.content)
-    print("Json Results:", json_result)
     token = json_result["access_token"]
     return token
-print(getSpotifyToken())
+spo_token = getSpotifyToken()
+
 # function to get list of songs and artists from playlist
 def getAuthHeader(token):
     return {"Authorization" : "Bearer " + token}
 
+#playlist link, red part is playlist id(not inlcuding question mark), used to get song id from playlist,
+https://open.spotify.com/playlist/3HtiKiKxFosjLOGbKlX08n?si=cdd07dc532fc4138 
+
+#song link, red part is song id(not inlcuding question mark), used to get song info
+https://open.spotify.com/track/4NczzeHBQPPDO0B9AAmB8d?si=e2b96fe20db74e50
