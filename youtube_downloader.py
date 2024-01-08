@@ -1,5 +1,8 @@
 from pytube import YouTube
-import requests 
+import requests
+from requests import post
+import base64
+import json
 import os
 
 # Youtube Data API 3 key AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs
@@ -32,6 +35,26 @@ def filesToMp3():
             os.rename(song, new_name)
             print("Song", old_name, "has been converted to a mp3 file")
             
+def getSpotifyToken():
+    clientID = "3b1a8a6de53546518ff043f646ad21b9"
+    clientSecret = "d4021685a5304d259ba0be5de83cb874"
+    auth_string = clientID + ":" + clientSecret
+    auth_bytes = auth_string.encode("utf-8")
+    auth_base64 = str(base64.b64encode(auth_bytes), "utf-8")
+    
+    url = "https://accounts.spotify.com/api/token"
+    headers = {
+        "Authorization" : "Basic" + auth_base64,
+        "Content-Type" : "application/x-www-form-urlencoded"
+    }
+    data = {"grant_type" : "client_credentials"}
+    result = post(url, headers=headers, data = data)
+    json_result = json.loads(result.content)
+    print("Json Results:", json_result)
+    token = json_result["access_token"]
+    return token
+print(getSpotifyToken())
 # function to get list of songs and artists from playlist
-
+def getAuthHeader(token):
+    return {"Authorization" : "Bearer " + token}
 
