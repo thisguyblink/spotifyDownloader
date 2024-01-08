@@ -1,0 +1,4 @@
+# place to store all info about api and links
+
+# need to store link to playlist in variable 
+
