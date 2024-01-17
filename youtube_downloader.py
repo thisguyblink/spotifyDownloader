@@ -3,13 +3,13 @@ import requests
 from requests import post
 import base64
 import json
+from dotenv import load_dotenv
 import os
+
 
 # IMPORTANT Global Variables 
 # Working is Testing API Calls
-clientID = "3b1a8a6de53546518ff043f646ad21b9"
-    # Refreshed on 1/16/24
-clientSecret = "561e8751d1f6479eb7f5f276c82be96f"
+
 # Test link to be used later
 playlist_link = "https://open.spotify.com/playlist/2lBQEVNJIvSMT7q3T0GtZ8?si=e54c6c63d7a146ee"
 
@@ -17,8 +17,11 @@ playlist_link = "https://open.spotify.com/playlist/2lBQEVNJIvSMT7q3T0GtZ8?si=e54
 playlist_id = " "
 token = " "
 track_id_list = []
-videoID = " "
+clientID = os.getenv('clientID')
+clientSecret = os.getenv('clientSecret')
 
+def configure():
+    loaddotenv()
 
 # Youtube Data API 3 key AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs
 # Youtube Api being used to get video id from search
@@ -28,6 +31,7 @@ def getYT(search):
     data = requests.get(api_url)
     results = data.json()
     videoID = results['items'][0]['id']['videoId']
+    return videoID
 
 # pytube used to download video
 # use return value of id from the getID function for the num parameter
@@ -64,7 +68,6 @@ def getSpotifyToken():
     return(token)
     
 
-# function to get list of songs and artists from playlist
 def getAuthHeader(token):
     return {"Authorization": "Bearer " + token}
 
@@ -100,17 +103,29 @@ def getTrackIDS(token, link):
         query_url = head
         offset += 50
         
-def trackSearch():
-    
-
-        
-        
-getTrackIDS(token, playlist_link)
-        
-trackSearch()    
+def trackSearch(id):
+    url = "https://api.spotify.com/v1/tracks/"
+    query_url = url + id
+    print(query_url)
+    headers = getAuthHeader(token)
+    result = requests.get(query_url, headers=headers)
+    json_result = json.loads(result.content)
+    print(json_result)
+    name = json_result['name']
+    artist = json_result['artists']['0']['name']
+    search = name + " by " + artist
+    return search
+  
 
 def main():
     token = getSpotifyToken()
+    print(token)
     getTrackIDS(token, playlist_link)
-    for 
+    for songID in track_id_list:
+        search = trackSearch(songID)
+        videoID = getYT(search)
+        # downloadVid(videoID)
+    #filesToMp3()
     return 0
+
+main()
