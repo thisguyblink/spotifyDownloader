@@ -17,17 +17,17 @@ playlist_link = "https://open.spotify.com/playlist/2lBQEVNJIvSMT7q3T0GtZ8?si=e54
 playlist_id = " "
 token = " "
 track_id_list = []
+videoID = " "
 
 
 # Youtube Data API 3 key AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs
 # Youtube Api being used to get video id from search
-def getYT(song, artist):
-    api_url = 'https://www.googleapis.com/youtube/v3/search?key=AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs&part=snippet&q={}{}r&type=video'
-    api_url = api_url.format(song, artist)
+def getYT(search):
+    api_url = 'https://www.googleapis.com/youtube/v3/search?key=AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs&part=snippet&q={}r&type=video'
+    api_url = api_url.format(search)
     data = requests.get(api_url)
     results = data.json()
     videoID = results['items'][0]['id']['videoId']
-    return videoID
 
 # pytube used to download video
 # use return value of id from the getID function for the num parameter
@@ -63,7 +63,6 @@ def getSpotifyToken():
     token = json_response["access_token"]
     return(token)
     
-token = getSpotifyToken()
 
 # function to get list of songs and artists from playlist
 def getAuthHeader(token):
@@ -77,12 +76,41 @@ def getTrackIDS(token, link):
     playlist_id = link.split("playlist/")[1]
     head, sep, tail = playlist_id.partition("?")
     playlist_id = head
-    query_url = playlist_url + playlist_id
-    print(playlist_id)
+    query_url = playlist_url + playlist_id + "/tracks"
+    offset = 0
+    total = 0
     result = requests.get(query_url, headers=headers)
     json_result = json.loads(result.content)
-    for i in range(json_result['tracks']['total']):
-        track_id_list.append(json_result['tracks']['items'][i]['track']['id'])
+    total_songs = 0
+    num_tracks = json_result['total']
+    loop = int(num_tracks / 50)
+    if num_tracks % 50 > 1:
+        loop += 1
+    for i in range(loop): # loop through requests 50 at a time while adding to offset
+        query_url + "?limit=50&offset={}"
+        query_url.format(offset)
+        result = requests.get(query_url, headers=headers)
+        json_result = json.loads(result.content)
+        for j in range(50):
+            if num_tracks > 0:
+                track_id_list.append(json_result['items'][j]['track']['id'])
+                num_tracks -= 1
+                total_songs += 1
+        head, sep, tail = query_url.partition("?")
+        query_url = head
+        offset += 50
+        
+def trackSearch():
     
-    
+
+        
+        
 getTrackIDS(token, playlist_link)
+        
+trackSearch()    
+
+def main():
+    token = getSpotifyToken()
+    getTrackIDS(token, playlist_link)
+    for 
+    return 0
