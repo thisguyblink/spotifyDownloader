@@ -5,13 +5,25 @@ import base64
 import json
 import os
 
+# IMPORTANT Global Variables 
+# Working is Testing API Calls
+clientID = "3b1a8a6de53546518ff043f646ad21b9"
+    # Refreshed on 1/16/24
+clientSecret = "561e8751d1f6479eb7f5f276c82be96f"
+# Test link to be used later
+playlist_link = "https://open.spotify.com/playlist/2lBQEVNJIvSMT7q3T0GtZ8?si=e54c6c63d7a146ee"
+
+# Making variables to be global bc they are used in different functions
+playlist_id = " "
+token = " "
+track_id_list = []
+
+
 # Youtube Data API 3 key AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs
 # Youtube Api being used to get video id from search
-def getID(song, artist):
-    song_name = "Earthquake" 
-    artist_name = "Tyler the Creator"
+def getYT(song, artist):
     api_url = 'https://www.googleapis.com/youtube/v3/search?key=AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs&part=snippet&q={}{}r&type=video'
-    api_url = api_url.format(song_name, artist_name)
+    api_url = api_url.format(song, artist)
     data = requests.get(api_url)
     results = data.json()
     videoID = results['items'][0]['id']['videoId']
@@ -34,32 +46,43 @@ def filesToMp3():
             new_name = old_name + "mp3"
             os.rename(song, new_name)
             print("Song", old_name, "has been converted to a mp3 file")
-            
+
 def getSpotifyToken():
-    clientID = "3b1a8a6de53546518ff043f646ad21b9"
-    clientSecret = "d4021685a5304d259ba0be5de83cb874"
-    auth_string = clientID + ":" + clientSecret
-    auth_bytes = auth_string.encode("utf-8")
-    auth_base64 = str(base64.b64encode(auth_bytes), "utf-8")
-    
-    url = "https://accounts.spotify.com/api/token"
+    encoded = base64.b64encode((clientID + ":" + clientSecret).encode("ascii")).decode("ascii")
+
     headers = {
-        "Authorization" : "Basic" + auth_base64,
-        "Content-Type" : "application/x-www-form-urlencoded"
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": "Basic " + encoded
     }
-    data = {"grant_type" : "client_credentials"}
-    result = post(url, headers=headers, data=data)
-    json_result = json.loads(result.content)
-    token = json_result["access_token"]
-    return token
-spo_token = getSpotifyToken()
+ 
+    payload = {
+        "grant_type": "client_credentials"
+    }
+    response = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
+    json_response = json.loads(response.content)
+    token = json_response["access_token"]
+    return(token)
+    
+token = getSpotifyToken()
 
 # function to get list of songs and artists from playlist
 def getAuthHeader(token):
-    return {"Authorization" : "Bearer " + token}
+    return {"Authorization": "Bearer " + token}
 
-#playlist link, red part is playlist id(not inlcuding question mark), used to get song id from playlist,
-https://open.spotify.com/playlist/3HtiKiKxFosjLOGbKlX08n?si=cdd07dc532fc4138 
-
-#song link, red part is song id(not inlcuding question mark), used to get song info
-https://open.spotify.com/track/4NczzeHBQPPDO0B9AAmB8d?si=e2b96fe20db74e50
+def getTrackIDS(token, link): 
+    # Spotify api setup and authentication
+    playlist_url = "https://api.spotify.com/v1/playlists/"
+    headers = getAuthHeader(token)
+    
+    playlist_id = link.split("playlist/")[1]
+    head, sep, tail = playlist_id.partition("?")
+    playlist_id = head
+    query_url = playlist_url + playlist_id
+    print(playlist_id)
+    result = requests.get(query_url, headers=headers)
+    json_result = json.loads(result.content)
+    for i in range(json_result['tracks']['total']):
+        track_id_list.append(json_result['tracks']['items'][i]['track']['id'])
+    
+    
+getTrackIDS(token, playlist_link)
