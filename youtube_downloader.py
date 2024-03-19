@@ -17,29 +17,39 @@ playlist_link = "https://open.spotify.com/playlist/2lBQEVNJIvSMT7q3T0GtZ8?si=e54
 playlist_id = " "
 token = " "
 track_id_list = []
+not_found = []
+# clientID = os.getenv('clientID')
+# clientSecret = os.getenv('clientSecret')
+load_dotenv()
 clientID = os.getenv('clientID')
 clientSecret = os.getenv('clientSecret')
-
-def configure():
-    loaddotenv()
 
 # Youtube Data API 3 key AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs
 # Youtube Api being used to get video id from search
 def getYT(search):
+    global not_found
     api_url = 'https://www.googleapis.com/youtube/v3/search?key=AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs&part=snippet&q={}r&type=video'
     api_url = api_url.format(search)
     data = requests.get(api_url)
     results = data.json()
-    videoID = results['items'][0]['id']['videoId']
+    searchHits = results['pageInfo']['totalResults']
+    if searchHits > 0:
+        videoID = results['items'][0]['id']['videoId']
+    else:
+        not_found.append(search)
+        return 'null'
     return videoID
 
 # pytube used to download video
 # use return value of id from the getID function for the num parameter
 def downloadVid(num):
-    url = "https://www.youtube.com/watch?v=" + num
-    video = YouTube(url)
-    video = video.streams.get_highest_resolution()
-    video.download(output_path="/home/patrick/Documents/Downloaded_Songs")
+    if num != 'null':
+        url = "https://www.youtube.com/watch?v=" + num
+        video = YouTube(url)
+        video = video.streams.get_highest_resolution()
+        video.download(output_path="/home/patrick/Documents/Downloaded_Songs")
+    else:
+        return
 
 # changing file extensions from mp4 to mp3 
 def filesToMp3():
@@ -62,16 +72,18 @@ def getSpotifyToken():
     payload = {
         "grant_type": "client_credentials"
     }
-    response = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers)
+    response = requests.post("https://accounts.spotify.com/api/token", data=payload, headers=headers, auth=(clientID, clientSecret))
     json_response = json.loads(response.content)
+    global token 
     token = json_response["access_token"]
-    return(token)
+    return token
     
 
 def getAuthHeader(token):
     return {"Authorization": "Bearer " + token}
 
 def getTrackIDS(token, link): 
+    global track_id_list
     # Spotify api setup and authentication
     playlist_url = "https://api.spotify.com/v1/playlists/"
     headers = getAuthHeader(token)
@@ -107,25 +119,31 @@ def trackSearch(id):
     url = "https://api.spotify.com/v1/tracks/"
     query_url = url + id
     print(query_url)
-    headers = getAuthHeader(token)
-    result = requests.get(query_url, headers=headers)
+    header = getAuthHeader(token)
+    result = requests.get(query_url, headers=header)
     json_result = json.loads(result.content)
-    print(json_result)
     name = json_result['name']
-    artist = json_result['artists']['0']['name']
+    artist = json_result['artists'][0]['name']
     search = name + " by " + artist
     return search
   
 
-def main():
+def main(link):
     token = getSpotifyToken()
-    print(token)
+    playlist_link = link
     getTrackIDS(token, playlist_link)
+    videoidlist = []
     for songID in track_id_list:
         search = trackSearch(songID)
         videoID = getYT(search)
-        # downloadVid(videoID)
+        videoidlist.append(videoID)
+        downloadVid(videoID)
     #filesToMp3()
+    print(track_id_list)
+    # print(videoidlist)
+    print("These songs couldn't be downloaded")
+    print(not_found)
     return 0
 
-main()
+input = "https://open.spotify.com/playlist/3HWT6R70Q9d0wwHQw1tEFg?si=105aa5bd227841ae"
+main(input)
