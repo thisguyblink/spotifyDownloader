@@ -6,7 +6,8 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return "Hello World"
+    # return render_template('index.html')
 
 @app.route('/run_script', methods=['POST'])
 def run_script():
