@@ -28,17 +28,22 @@ clientSecret = os.getenv('clientSecret')
 # Youtube Api being used to get video id from search
 def getYT(search):
     global not_found
-    api_url = 'https://www.googleapis.com/youtube/v3/search?key=AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs&part=snippet&q={}r&type=video'
+    api_url = 'https://www.googleapis.com/youtube/v3/search?key=YOUR_API_KEY&part=snippet&q={}r&type=video'
     api_url = api_url.format(search)
-    data = requests.get(api_url)
-    results = data.json()
-    searchHits = results['pageInfo']['totalResults']
-    if searchHits > 0:
-        videoID = results['items'][0]['id']['videoId']
-    else:
-        not_found.append(search)
+    try:
+        data = requests.get(api_url)
+        results = data.json()
+        searchHits = results['pageInfo']['totalResults']
+        if searchHits > 0:
+            videoID = results['items'][0]['id']['videoId']
+        else:
+            not_found.append(search)
+            return 'null'
+        return videoID
+    except Exception as e:
+        print("An error occurred during YouTube search:", e)
         return 'null'
-    return videoID
+
 
 # pytube used to download video
 # use return value of id from the getID function for the num parameter
@@ -147,6 +152,3 @@ def main(link):
     print("These songs couldn't be downloaded")
     print(not_found)
     return 0
-
-input = "https://open.spotify.com/playlist/3HWT6R70Q9d0wwHQw1tEFg?si=105aa5bd227841ae"
-main(input)
