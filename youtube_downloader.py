@@ -137,7 +137,10 @@ def main(link):
         search = trackSearch(songID)
         videoID = getYT(search)
         videoidlist.append(videoID)
-        downloadVid(videoID)
+    for id in videoidlist:
+        downloadVid(id)
+        print("Video id num:", id, "has been downloaded")
+    
     #filesToMp3()
     print(track_id_list)
     # print(videoidlist)
