@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 from test import *
-from youtube_downloader import *
+from api.static.youtube_downloader import *
 
 app = Flask(__name__)
 
