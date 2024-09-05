@@ -24,7 +24,6 @@ load_dotenv()
 clientID = os.getenv('clientID')
 clientSecret = os.getenv('clientSecret')
 
-# Youtube Data API 3 key AIzaSyB8vC1kJfXRW_5v0df9JBf4u9uuVwmwUOs
 # Youtube Api being used to get video id from search
 def getYT(search):
     global not_found
